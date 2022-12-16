@@ -1,6 +1,6 @@
 %
 % A personal package for my work
-% 
+%
 %   (c) Alessandro Sciarra <asciarra@fias.uni-frankfurt.de>
 %
 %
@@ -20,9 +20,9 @@
 %From https://tex.stackexchange.com/a/91179
 % \newif\if@myfiledraft
 % \DeclareOption{draft}{\@myfiledrafttrue}
-% 
+%
 % \ProcessOptions\relax
-% 
+%
 % \if@myfiledraft
 %   \newcommand{\myterm}[1]{\emph{#1}\marginpar{TERM: #1}}
 % \else
@@ -187,7 +187,7 @@
 \newcommand{\FrameRemark}[2][1-]%
 {%
     \begin{tikzpicture}[remember picture, overlay]
-        \node[font=\tiny, anchor=south, visible on=<#1>] at (current page.south) {#2};
+        \node[font=\tiny, anchor=south, visible on=<{#1}>] at (current page.south) {#2};
     \end{tikzpicture}
 }
 
@@ -199,7 +199,7 @@
         let \p1=(#2),\p2=(#3),\n1={max(\x1,\x2)} in
         coordinate (rightmost) at (\n1, 0);
         \draw[draw=Gray, very thick, decorate, decoration={brace,amplitude=6pt}]
-            (#2 -| rightmost) ++(1ex,1ex) -- ($(#3 -| rightmost)+(1ex,-1ex)$) 
+            (#2 -| rightmost) ++(1ex,1ex) -- ($(#3 -| rightmost)+(1ex,-1ex)$)
             node[midway, right=3mm, text width=#1, #4] {#5};
     \end{tikzpicture}
 }
