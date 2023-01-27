@@ -13,7 +13,8 @@
     overlay-beamer-styles,
     calc,
     intersections,
-    decorations.pathreplacing
+    decorations.pathreplacing,
+    spy
 }
 
 %---------------------------------------------------------%
@@ -178,6 +179,60 @@
 \NewDocumentEnvironment{DrawOnNode*}{ m O{} }
     {\begin{internal@DrawOnNode}*{#1}[#2]}
     {\end{internal@DrawOnNode}}
+
+%Tikz scope to spy on node with relative coordinates
+% -> resulted from https://tex.stackexchange.com/a/673144/128737
+\NewDocumentEnvironment{internal@SpyOnNode}{ s m O{} }
+{
+    \begin{scope}[x={($(#2.south east) - (#2.south west)$)},
+        y={($(#2.north west) - (#2.south west)$)}, shift={(#2.south west)}, #3]
+        \IfBooleanTF{#1}
+        {
+            \draw[help lines, xstep=0.05,ystep=0.05] (0,0) grid (1.001,1.001);
+            \draw[very thin,  xstep=0.1,ystep=0.1] (0,0) grid (1.001,1.001);
+            \pgfkeys{/pgf/number format/precision=1}
+            \foreach \x in {0,0.1,...,1.001} {
+                \node [anchor=north, font=\tiny] at (\x,0) {\rotatebox{-90}{\pgfmathroundtozerofill{\x}\pgfmathresult}};
+                \node [anchor=south, font=\tiny] at (\x,1) {\rotatebox{90}{\pgfmathroundtozerofill{\x}\pgfmathresult}};
+                \node [anchor=east, font=\tiny]  at (0,\x) {\pgfmathroundtozerofill{\x}\pgfmathresult};
+                \node [anchor=west, font=\tiny]  at (1,\x) {\pgfmathroundtozerofill{\x}\pgfmathresult};
+            }
+        }{}
+        %Extract units in x and y directions as length
+        \path let \p{P}=(1,0), \n{xlencm}={scalar(veclen(\x{P},\y{P})/1cm)}
+        in \pgfextra{\xdef\ux{\n{xlencm}cm}};
+        \path let \p{P}=(0,1), \n{ylencm}={scalar(veclen(\x{P},\y{P})/1cm)}
+        in \pgfextra{\xdef\uy{\n{ylencm}cm}};
+    }
+    {
+    \end{scope}
+}
+\NewDocumentEnvironment{SpyOnNode}{ m O{} }
+{\begin{internal@SpyOnNode}{#1}[#2]}
+    {\end{internal@SpyOnNode}}
+\NewDocumentEnvironment{SpyOnNode*}{ m O{} }
+{\begin{internal@SpyOnNode}*{#1}[#2]}
+    {\end{internal@SpyOnNode}}
+
+%Command meant to be used in the environment above (\ux and \uy defined)
+% #1 -> magnification factor
+% #2 -> width  of area to be magnified
+% #3 -> height of area to be magnified
+% #4 -> coordinates at which to spy on
+% #5 -> coordinates at which the magnification is placed
+% #6 -> optional key(s) for \spy
+\NewDocumentCommand{\spyarea}{m m m m m O{}}{%
+    \pgfmathgeneratepseudorandomnumber
+    \let\myprn\pgfmathresult
+    \coordinate (tmp@from@\myprn) at #4;
+    \coordinate (tmp@to@\myprn) at #5;
+    \expanded{%
+        \noexpand\spy[magnification=#1,
+        minimum width=#1*#2*\ux,
+        minimum height=#1*#3*\uy, #6] on (tmp@from@\myprn) in node at (tmp@to@\myprn);
+    }
+}
+
 
 \newcommand{\Remark}[2][1mm]
 {%
