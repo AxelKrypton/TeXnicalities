@@ -217,3 +217,38 @@
     \endgroup
 }
 
+% From https://tex.stackexchange.com/a/573825
+\newif\ifbeamer@show@overlayarea
+\pgfkeys{%
+    /beamer/overlayarea/.cd,
+    show frame/.is if=beamer@show@overlayarea,
+    show frame/.default=true
+}
+\beamer@show@overlayareafalse
+\mode<presentation> {%
+\renewenvironment{overlayarea}[3][]{%
+    \pgfkeys{/beamer/overlayarea/.cd,#1}%
+    \beamer@animht=#2\relax
+    \beamer@animwd=#3\relax
+    \setbox\beamer@areabox=\vbox to\beamer@animwd\bgroup
+    \strut\begin{minipage}[t]{\beamer@animht}%
+        % Make the minipage behave like the main part of the slide
+        \normalfont
+        \raggedright
+}
+{%
+    \end{minipage}\endgraf\vfil
+    \egroup
+    \wd\beamer@areabox=\beamer@animht
+    \ht\beamer@areabox=\beamer@animwd
+    \dp\beamer@areabox=0pt %
+    \ifbeamer@show@overlayarea
+        \bgroup\fboxsep=0pt\relax
+        \hspace*{-0.4pt}\vspace*{-0.4pt}%
+        \fbox{\box\beamer@areabox}\hspace*{-0.4pt}\vspace*{-0.4pt}%
+        \egroup
+    \else
+        \box\beamer@areabox
+    \fi
+}}
+
