@@ -129,7 +129,6 @@
 
 \NewDocumentCommand{\URL}{ s o m m }
 {%
-    %\def\@tikzenvironment{tikzpicture}%
     \IfBooleanTF{#1}
     {%
         \IfNoValueF{#2}
@@ -259,6 +258,12 @@
     \end{tikzpicture}
 }
 
+\newcommand{\then}{\raisebox{2pt}{$\;\drsh\;$}}
+\newcommand{\Then}[1]{%
+    \pgfmathwidth{"\then"}
+    \pgfmathparse{\linewidth-\pgfmathresult}
+    \then\parbox[t]{\pgfmathresult pt}{\raggedright #1}
+}
 \newcommand{\AlertFrame}[1]%
 {%
     \begingroup
@@ -273,6 +278,7 @@
 }
 
 % From https://tex.stackexchange.com/a/573825
+%  -> but without \strut before minipage that might add vertical space
 \newif\ifbeamer@show@overlayarea
 \pgfkeys{%
     /beamer/overlayarea/.cd,
@@ -286,7 +292,7 @@
     \beamer@animht=#2\relax
     \beamer@animwd=#3\relax
     \setbox\beamer@areabox=\vbox to\beamer@animwd\bgroup
-    \strut\begin{minipage}[t]{\beamer@animht}%
+    \begin{minipage}[t]{\beamer@animht}%
         % Make the minipage behave like the main part of the slide
         \normalfont
         \raggedright
