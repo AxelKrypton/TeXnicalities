@@ -264,14 +264,14 @@
     \pgfmathparse{\linewidth-\pgfmathresult}
     \then\parbox[t]{\pgfmathresult pt}{\raggedright #1}
 }
-\newcommand{\AlertFrame}[1]%
+\newcommand{\AlertFrame}[2][PT]%
 {%
     \begingroup
-    \setbeamercolor{background canvas}{bg=PT}
+    \setbeamercolor{background canvas}{bg=#1}
     \begin{frame}[c,plain,noframenumbering]{}
         \begin{tikzpicture}[overlay,remember picture]
             \node[text depth=0.5ex] at (current page.center)
-                {\usebeamerfont{section title}\usebeamercolor[fg]{section title}#1};
+                {\usebeamerfont{section title}\usebeamercolor[fg]{section title}#2};
         \end{tikzpicture}
     \end{frame}
     \endgroup
