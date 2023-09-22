@@ -5,16 +5,97 @@
 %
 %
 \NeedsTeXFormat{LaTeX2e}[1994/06/01]
-\ProvidesPackage{TeXnicalities}
-\RequirePackage{xparse,etoolbox}
+\ProvidesPackage{TeXnicalities}[2023/02/02 v0.2 A bunch of tools]
+\RequirePackage{xparse,etoolbox,xstring,listofitems,pdftexcmds}
 \RequirePackage{xcolor}
 \RequirePackage{tikz}
+\RequirePackage{pgfopts}
 \usetikzlibrary{
     overlay-beamer-styles,
     calc,
     intersections,
     decorations.pathreplacing,
     spy
+}
+
+% Inspired from https://tex.stackexchange.com/a/13309/128737
+\setsepchar{ }
+\xdef\TeXnic@packageInfo{\csname ver@TeXnicalities.sty\endcsname}
+\readlist\TeXnic@packageInfoAsList\TeXnic@packageInfo
+\def\TeXnic@version{\expandafter\@gobble\expanded{\TeXnic@packageInfoAsList[2]}}
+
+% Utility to compare versions, it prints:
+%   -1: #1 <  #2
+%    0: #1 == #2
+%    1: #1 >  #2
+\newcommand{\TeXnic@compareVersions}[2]{%
+    \ifdimless{#1 pt}{#2 pt}{%
+        -1%
+    }{%
+        \ifdimgreater{#1 pt}{#2 pt}{%
+            1%
+        }{%
+            0%
+        }
+    }
+}
+% Further utilities for later use in package. The interface is
+% similar to etoolbox commands. #1 and #2 are two versions (in
+% the X.Y format) and comparison is done using length, hence with
+% limited precision (enough for this package). #3 and #4 are the
+% <true> and <false> code.
+\newcommand{\TeXnic@ifVersionSmaller}[4]{%
+    \ifnum\TeXnic@compareVersions{#1}{#2}=-1%
+        #3%
+    \else%
+        #4%
+    \fi%
+}
+\newcommand{\TeXnic@ifVersionLarger}[4]{%
+    \TeXnic@ifVersionSmaller{#2}{#1}{#3}{#4}
+}
+\newcommand{\TeXnic@ifVersionEqual}[4]{%
+    \ifnum\TeXnic@compareVersions{#1}{#2}=0%
+        #3%
+    \else%
+        #4%
+    \fi%
+}
+
+% Process package options and test
+\pgfkeys{
+    /myTeX/.cd,
+    compat/.store in=\TeXnic@compat,
+    compat=0.1
+    compat/.value required,
+}
+\ProcessPgfOptions{/myTeX}
+
+% Abort if a too large version is passed to the package
+\IfStrEq{\TeXnic@compat}{last}{%
+    \edef\TeXnic@compat{\TeXnic@version}
+}{%
+    \IfDecimal{\TeXnic@compat}{%
+        \TeXnic@ifVersionSmaller{\TeXnic@compat}{0.1}{%
+            \PackageError{TeXnicalities}{%
+                Invalid value of 'compat' option specified.\MessageBreak
+                Minimum allowed version is '0.1'%
+            }{}
+        }{}
+        \TeXnic@ifVersionLarger{\TeXnic@compat}{\TeXnic@version}{%
+            \PackageError{TeXnicalities}{%
+                Too large value of 'compat' option specified.\MessageBreak
+                Maximum allowed value is '\TeXnic@version' or you can use\MessageBreak
+                'last' (default, if you don't use the option)%
+            }{}
+        }{}
+    }{%
+        \PackageError{TeXnicalities}{%
+            Invalid value of 'compat' option specified.\MessageBreak
+            This must be either 'last' or a number\MessageBreak
+            in the 'X.Y' form (X and Y are integers)%
+        }{}
+    }
 }
 
 %---------------------------------------------------------%
@@ -238,14 +319,24 @@
     \hspace{#1}{\tiny\{~#2~\}}%
 }
 
-\newcommand{\FrameRemark}[2][1-]%
-{%
-    \begin{tikzpicture}[remember picture, overlay]
-        \node[font=\tiny, anchor=south, visible on=<{#1}>] at (current page.south) {#2};
-    \end{tikzpicture}
+\TeXnic@ifVersionEqual{\TeXnic@compat}{0.1}{%
+    \newcommand{\FrameRemark}[2][1-]%
+    {%
+        \begin{tikzpicture}[remember picture, overlay]
+            \node[font=\tiny, anchor=south, visible on=<{#1}>] at (current page.south) {#2};
+        \end{tikzpicture}
+    }
+}{%
+    \newcommand{\FrameRemark}[1]%
+    {%
+        \begin{tikzpicture}[remember picture, overlay]
+            \node[font=\tiny, anchor=south] at (current page.south) {#1};
+        \end{tikzpicture}
+    }
 }
 
 \newcommand{\tikzmark}[1]{\tikz[overlay,remember picture, baseline=-0.5ex] \node at (0,0) (#1) {};}
+
 \NewDocumentCommand{\CurlyRemark}{ O{0.3\textwidth} m m O{align=center,} m}
 {%
     \begin{tikzpicture}[remember picture, overlay]
@@ -264,6 +355,16 @@
     \pgfmathparse{\linewidth-\pgfmathresult}
     \then\parbox[t]{\pgfmathresult pt}{\raggedright #1}
 }
+
+%Commands for beamer presentations only
+\@ifclassloaded{beamer}{%
+%=====================================================================================
+\TeXnic@ifVersionLarger{\TeXnic@compat}{0.1}{%
+    \renewcommand<>{\FrameRemark}[1]{%
+        \only#2{\beameroriginal{\FrameRemark}{#1}}
+    }
+}{}
+
 \newcommand{\AlertFrame}[2][PT]%
 {%
     \begingroup
@@ -312,4 +413,5 @@
         \box\beamer@areabox
     \fi
 }}
-
+%=====================================================================================
+}{}
