@@ -66,7 +66,7 @@
 \pgfkeys{
     /myTeX/.cd,
     compat/.store in=\TeXnic@compat,
-    compat=0.1
+    compat=0.1,
     compat/.value required,
 }
 \ProcessPgfOptions{/myTeX}
@@ -91,7 +91,7 @@
         }{}
     }{%
         \PackageError{TeXnicalities}{%
-            Invalid value of 'compat' option specified.\MessageBreak
+            Invalid value '\TeXnic@compat' of 'compat' option specified.\MessageBreak
             This must be either 'last' or a number\MessageBreak
             in the 'X.Y' form (X and Y are integers)%
         }{}
