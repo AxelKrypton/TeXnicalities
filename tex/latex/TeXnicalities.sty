@@ -371,7 +371,7 @@
     \setbeamercolor{background canvas}{bg=#1}
     \begin{frame}[c,plain,noframenumbering]{}
         \begin{tikzpicture}[overlay,remember picture]
-            \node[text depth=0.5ex] at (current page.center)
+            \node at (current page.center)
                 {\usebeamerfont{section title}\usebeamercolor[fg]{section title}#2};
         \end{tikzpicture}
     \end{frame}
